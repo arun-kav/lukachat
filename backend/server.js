@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 
 const chatController = require('./controllers/chatController');
+const eventController = require('./controllers/eventController');
 const rateLimiter = require('./middleware/rateLimiter');
 const botFilter = require('./middleware/botFilter');
 
@@ -12,7 +13,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : "http://localhost:5174",
+    origin: "*", // Allow all origins for Vercel deployment
     methods: ["GET", "POST"]
   }
 });
@@ -30,6 +31,10 @@ app.get('/ready', (req, res) => {
   res.status(200).json({ status: 'ready', timestamp: new Date().toISOString() });
 });
 
+// API routes
+app.get('/api/events', eventController.getEvents);
+app.post('/api/events', eventController.createEvent);
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
@@ -44,8 +49,9 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
   
   // Join room event
-  socket.on('joinRoom', (eventId) => {
+  socket.on('joinRoom', (payload) => {
     try {
+      const { eventId } = payload;
       chatController.joinRoom(socket, eventId);
       console.log(`User ${socket.id} joined room: ${eventId}`);
     } catch (error) {

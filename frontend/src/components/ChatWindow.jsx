@@ -110,12 +110,17 @@ const ChatWindow = () => {
               )}
             </div>
           </div>
-          <button
-            onClick={() => setShowUsernameModal(true)}
-            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-          >
-            Change Username
-          </button>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-500">
+              Logged in as: <span className="font-semibold text-gray-700">{user.username}</span>
+            </span>
+            <button
+              onClick={() => setShowUsernameModal(true)}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Change Username
+            </button>
+          </div>
         </div>
         
         {connectionError && (

@@ -11,11 +11,11 @@ function App() {
     <Provider store={store}>
       <ChatProvider>
         <div className="h-screen flex bg-gray-100">
-          {/* Sidebar */}
-          <EventSelector />
-          
           {/* Main Chat Area */}
           <ChatWindow />
+          
+          {/* Sidebar */}
+          <EventSelector />
         </div>
       </ChatProvider>
     </Provider>

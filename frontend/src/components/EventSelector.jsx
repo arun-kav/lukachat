@@ -2,63 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useChatContext } from '../contexts/ChatContext';
 import { setEventId, clearChat } from '../store/chatSlice';
+import Modal from './Modal';
 
 const EventSelector = () => {
   const [events, setEvents] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newEventName, setNewEventName] = useState('');
+  const [newEventDescription, setNewEventDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
   const { eventId, updateEventId } = useChatContext();
 
-  // Mock events for now - in production, fetch from API
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const mockEvents = [
-          {
-            id: 'tech-conference-2025',
-            name: 'Tech Conference 2025',
-            description: 'Annual technology conference covering AI, blockchain, and web development',
-            status: 'live',
-            participants: 245
-          },
-          {
-            id: 'gaming-tournament',
-            name: 'Esports Championship',
-            description: 'Live gaming tournament with top players worldwide',
-            status: 'live',
-            participants: 1834
-          },
-          {
-            id: 'music-festival',
-            name: 'Summer Music Festival',
-            description: 'Live music performances from various artists',
-            status: 'upcoming',
-            participants: 89
-          },
-          {
-            id: 'sports-match',
-            name: 'Championship Final',
-            description: 'Live sports commentary and discussion',
-            status: 'live',
-            participants: 567
-          }
-        ];
-        
-        setEvents(mockEvents);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load events');
-        console.error('Error fetching events:', err);
-      } finally {
-        setLoading(false);
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/events');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
+      const data = await response.json();
+      setEvents(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load events');
+      console.error('Error fetching events:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchEvents();
   }, []);
 
@@ -68,6 +42,36 @@ const EventSelector = () => {
     dispatch(clearChat());
     dispatch(setEventId(selectedEventId));
     updateEventId(selectedEventId);
+  };
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault();
+    if (!newEventName.trim() || !newEventDescription.trim()) {
+      alert('Please enter both event name and description.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newEventName, description: newEventDescription }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create event');
+      }
+
+      setNewEventName('');
+      setNewEventDescription('');
+      setIsModalOpen(false);
+      fetchEvents();
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Failed to create event. Please try again.');
+    }
   };
 
   if (loading) {
@@ -153,10 +157,49 @@ const EventSelector = () => {
         <p className="text-sm text-gray-600 mb-3">
           Want to host your own live chat event?
         </p>
-        <button className="w-full px-3 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 text-sm font-medium">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full px-3 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 text-sm font-medium"
+        >
           Create Event
         </button>
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
+        <form onSubmit={handleCreateEvent}>
+          <div className="mb-4">
+            <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+            <input
+              type="text"
+              id="eventName"
+              value={newEventName}
+              onChange={(e) => setNewEventName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="eventDescription" className="block text-sm font-medium text-gray-700 mb-1">Event Description</label>
+            <textarea
+              id="eventDescription"
+              value={newEventDescription}
+              onChange={(e) => setNewEventDescription(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">
+              Create
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

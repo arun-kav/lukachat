@@ -1,41 +1,60 @@
 import React from 'react';
 import { useChatContext } from '../contexts/ChatContext';
 
+const COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B801', '#5F6B6D',
+  '#B1A296', '#F28C28', '#C8A2C8', '#78C0A8', '#F0A8A8'
+];
+
+const getUserColor = (userId) => {
+  const hash = userId.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  return COLORS[Math.abs(hash) % COLORS.length];
+};
+
 const Message = ({ message }) => {
   const { user } = useChatContext();
-  const isOwnMessage = message.user.id === user.id;
-  
+  const isOwnMessage = message.userId === user.id;
+  const userColor = getUserColor(message.userId);
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
   return (
-    <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-        isOwnMessage 
-          ? 'bg-primary-500 text-white' 
-          : 'bg-gray-200 text-gray-800'
-      }`}>
-        <div className="flex items-center justify-between mb-1">
-          <span className={`text-xs font-medium ${
-            isOwnMessage ? 'text-primary-100' : 'text-gray-600'
-          }`}>
-            {isOwnMessage ? 'You' : message.user.username}
-          </span>
-          <span className={`text-xs ml-2 ${
-            isOwnMessage ? 'text-primary-100' : 'text-gray-500'
-          }`}>
-            {formatTime(message.timestamp)}
-          </span>
+    <div className={`flex items-start gap-3 my-4 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+      {!isOwnMessage && (
+        <div
+          className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
+          style={{ backgroundColor: userColor }}
+        >
+          {message.username.charAt(0).toUpperCase()}
         </div>
-        <p className="text-sm break-words">
-          {message.text}
-        </p>
+      )}
+      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        <div className={`p-3 rounded-lg max-w-xs md:max-w-md ${
+          isOwnMessage
+            ? 'bg-primary-500 text-white rounded-br-none'
+            : 'bg-gray-200 text-gray-900 rounded-bl-none'
+        }`}>
+          {!isOwnMessage && (
+            <span className="font-bold text-sm" style={{ color: userColor }}>
+              {message.username}
+            </span>
+          )}
+          <p className="text-sm break-words mt-1">
+            {message.text}
+          </p>
+        </div>
+        <span className="text-xs text-gray-500 mt-1">
+          {formatTime(message.timestamp)}
+        </span>
       </div>
     </div>
   );
