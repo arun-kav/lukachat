@@ -28,7 +28,7 @@ const Message = ({ message }) => {
   };
 
   return (
-    <div className={`flex items-start gap-3 my-4 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex items-start gap-3 my-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
       {!isOwnMessage && (
         <div
           className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
@@ -38,17 +38,17 @@ const Message = ({ message }) => {
         </div>
       )}
       <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        <div className={`p-3 rounded-lg max-w-xs md:max-w-md ${
+        <div className={`px-4 py-2 rounded-md max-w-lg ${
           isOwnMessage
             ? 'bg-primary-500 text-white rounded-br-none'
             : 'bg-gray-200 text-gray-900 rounded-bl-none'
         }`}>
-          {!isOwnMessage && (
-            <span className="font-bold text-sm" style={{ color: userColor }}>
-              {message.username}
-            </span>
-          )}
-          <p className="text-sm break-words mt-1">
+          <p className="text-sm break-words">
+            {!isOwnMessage && (
+              <span className="font-bold" style={{ color: userColor }}>
+                {message.username}:{' '}
+              </span>
+            )}
             {message.text}
           </p>
         </div>
